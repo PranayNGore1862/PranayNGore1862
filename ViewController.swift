@@ -18,6 +18,8 @@ import AVFoundation
 import SwiftyJSON
 import GoogleMobileAds
 import Google_Mobile_Ads_SDK
+import RevenueCat
+import Purchases
 
 class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerControllerDelegate, UINavigationControllerDelegate/*, BannerViewDelegate, FullScreenContentDelegate, AdLoaderDelegate*/{
     
@@ -26,25 +28,26 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
     @IBOutlet weak var selectAudBtn: UIButton!
     @IBOutlet weak var selectVidBtn: UIButton!
     @IBOutlet weak var recordAudBtn: UIButton!
-//    @IBOutlet weak var adView: UIView!
-
-
+    //    @IBOutlet weak var adView: UIView!
+    
+    
     var filename: String? = nil
     var thumbnailImage: UIImage?
     var durationString: String = ""
-    var count = 0
-//    var interstitial: InterstitialAd?
-//    private var adLoader: AdLoader!
+    var count = UserDefaults.standard.integer(forKey: "launchCount")
+    var counter = 1
+    //    var interstitial: InterstitialAd?
+    //    private var adLoader: AdLoader!
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        loadInterstitial()
-/*        loadNativeAd()*/ // Native Ads
+        //        loadInterstitial()
+        /*        loadNativeAd()*/ // Native Ads
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-//        loadNativeAd()
+        //        loadNativeAd()
     }
     
     @IBAction func settingButton(_ sender: UIButton) {
@@ -60,7 +63,23 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
     // Audio Button Action and document picker function
     
     @IBAction func audioButton(_ sender: UIButton) {
-        presentAudioPicker()
+        if count >= 1 {
+            let viewControllerToPresent = storyboard?.instantiateViewController(withIdentifier: "SubscribeViewController") as! SubscribeViewController
+            present(viewControllerToPresent, animated: true, completion: nil)
+        }else{
+            presentAudioPicker()
+        }
+        
+        // revenuecat code
+        Purchases.shared.getCustomerInfo { (customerInfo, error) in
+            if customerInfo?.entitlements["entitlement_id"]?.isActive == true {
+                // go to audio VC
+            } else {
+                // call the pro controller
+                let viewControllerToPresent = self.storyboard?.instantiateViewController(withIdentifier: "SubscribeViewController") as! SubscribeViewController
+                self.present(viewControllerToPresent, animated: true, completion: nil)
+            }
+        }
     }
     
     func presentAudioPicker() {
@@ -71,20 +90,20 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
         present(picker, animated: true)
     }
     
-//    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-//        guard let selectedURL = urls.first else { return }
-//        filename = selectedURL.lastPathComponent
-//        print("Selected audio file: \(selectedURL)")
-//        let totalduration = selectedURL
-//        let asset = AVAsset(url: totalduration)
-//        let duration = CMTimeGetSeconds(asset.duration)
-//        durationString =  formatTime(from: duration)
-//        let audioVC = storyboard?.instantiateViewController(withIdentifier: "AudioViewController") as? AudioViewController
-//        audioVC!.audioName1 = filename
-//        audioVC!.mainUrl = selectedURL
-//        audioVC!.totalsTime = durationString
-//        self.navigationController?.pushViewController(audioVC!, animated: true)
-//    }
+    //    func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
+    //        guard let selectedURL = urls.first else { return }
+    //        filename = selectedURL.lastPathComponent
+    //        print("Selected audio file: \(selectedURL)")
+    //        let totalduration = selectedURL
+    //        let asset = AVAsset(url: totalduration)
+    //        let duration = CMTimeGetSeconds(asset.duration)
+    //        durationString =  formatTime(from: duration)
+    //        let audioVC = storyboard?.instantiateViewController(withIdentifier: "AudioViewController") as? AudioViewController
+    //        audioVC!.audioName1 = filename
+    //        audioVC!.mainUrl = selectedURL
+    //        audioVC!.totalsTime = durationString
+    //        self.navigationController?.pushViewController(audioVC!, animated: true)
+    //    }
     
     func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
         guard let selectedURL = urls.first else { return }
@@ -97,7 +116,7 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
             let asset = AVAsset(url: selectedURL)
             let duration = CMTimeGetSeconds(asset.duration)
             durationString = formatTime(from: duration)
-
+            
             let audioVC = storyboard?.instantiateViewController(withIdentifier: "AudioViewController") as? AudioViewController
             audioVC?.audioName1 = filename
             audioVC?.mainUrl = selectedURL
@@ -113,17 +132,22 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
             present(alert, animated: true)
         }
     }
-
+    
     
     // Video button action and mediapicker function cj=hecking audio function
     
     @IBAction func videoButton(_ sender: UIButton) {
-        let picker = UIImagePickerController()
-        picker.mediaTypes = [UTType.movie.identifier]
-        picker.sourceType = .photoLibrary
-        picker.allowsEditing = false
-        picker.delegate = self
-        present(picker, animated: true)
+        if count >= 1{
+            let viewControllerToPresent = storyboard?.instantiateViewController(withIdentifier: "SubscribeViewController") as! SubscribeViewController
+            present(viewControllerToPresent, animated: true, completion: nil)
+        }else{
+            let picker = UIImagePickerController()
+            picker.mediaTypes = [UTType.movie.identifier]
+            picker.sourceType = .photoLibrary
+            picker.allowsEditing = false
+            picker.delegate = self
+            present(picker, animated: true)
+        }
     }
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
@@ -134,7 +158,7 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
         
         let asset = AVAsset(url: selectedURL)
         let hasAudio = asset.tracks(withMediaType: .audio).count > 0
-                    
+        
         if hasAudio {
             print("Video has audio ")
         } else {
@@ -147,8 +171,8 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
         }
         
         if let videoURL = info[.mediaURL] as? URL {
-                    thumbnailImage = generateThumbnail(for: videoURL)
-                }
+            thumbnailImage = generateThumbnail(for: videoURL)
+        }
         if let totalduration = info[.mediaURL] as? URL {
             let asset = AVAsset(url: totalduration)
             let duration = CMTimeGetSeconds(asset.duration)
@@ -166,43 +190,64 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
     func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
-
+    
     func generateThumbnail(for url: URL) -> UIImage? {
-            let asset = AVAsset(url: url)
-            let imageGenerator = AVAssetImageGenerator(asset: asset)
-            imageGenerator.appliesPreferredTrackTransform = true // correct orientation
-
-            let time = CMTime(seconds: 1, preferredTimescale: 600) // capture at 1s
-            do {
-                let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
-                return UIImage(cgImage: cgImage)
-            } catch {
-                print("Error generating thumbnail: \(error)")
-                return nil
-            }
-        }
-    
-//     Record Button action and its function
-    
-    @IBAction func recordButton(_ sender: UIButton) {
-        if let audioVC = storyboard?.instantiateViewController(withIdentifier: "AudioRecordingViewController") as? AudioRecordingViewController {
-            navigationController?.pushViewController(audioVC, animated: true)
-        } else {
-            print("Could not find view controller with identifier 'AudioRecordingViewController'")
+        let asset = AVAsset(url: url)
+        let imageGenerator = AVAssetImageGenerator(asset: asset)
+        imageGenerator.appliesPreferredTrackTransform = true // correct orientation
+        
+        let time = CMTime(seconds: 1, preferredTimescale: 600) // capture at 1s
+        do {
+            let cgImage = try imageGenerator.copyCGImage(at: time, actualTime: nil)
+            return UIImage(cgImage: cgImage)
+        } catch {
+            print("Error generating thumbnail: \(error)")
+            return nil
         }
     }
     
+    //     Record Button action and its function
+    
+    @IBAction func recordButton(_ sender: UIButton) {
+        print(count)
+        if count >= 1{
+            let viewControllerToPresent = storyboard?.instantiateViewController(withIdentifier: "SubscribeViewController") as! SubscribeViewController
+            present(viewControllerToPresent, animated: true, completion: nil)
+        }else{
+            let audioVC = storyboard?.instantiateViewController(withIdentifier: "AudioRecordingViewController") as? AudioRecordingViewController
+            self.navigationController?.pushViewController(audioVC!, animated: true)
+        }
+        
+    }
+    
     func formatTime(from seconds: Double) -> String {
-            let hrs = Int(seconds) / 3600
-            let mins = (Int(seconds) % 3600) / 60
-            let secs = Int(seconds) % 60
-
-            if hrs > 0 {
-                return String(format: "%02d:%02d:%02d", hrs, mins, secs)
-            } else {
-                return String(format: "%02d:%02d", mins, secs)
+        let hrs = Int(seconds) / 3600
+        let mins = (Int(seconds) % 3600) / 60
+        let secs = Int(seconds) % 60
+        
+        if hrs > 0 {
+            return String(format: "%02d:%02d:%02d", hrs, mins, secs)
+        } else {
+            return String(format: "%02d:%02d", mins, secs)
+        }
+    }
+    
+    func fetchPackages() {
+        Purchases.shared.getOfferings { offerings, error in
+            if let offerings = offerings, let current = offerings.current {
+                if let weekly = current.weekly {
+                    print("Weekly Package: \(weekly)")
+                }
+                if let monthly = current.monthly {
+                    print("Monthly Package: \(monthly)")
+                }
+            } else if let error = error {
+                print("Error fetching offerings: \(error.localizedDescription)")
             }
         }
+    }
+    
+}
 
 // Ads Function
 //    func loadInterstitial() {
@@ -236,7 +281,7 @@ class ViewController: UIViewController, UIDocumentPickerDelegate, UIImagePickerC
 //        print("Failed to load native ad: \(error.localizedDescription)")
 //    }
 
-}
+
 
 //extension ViewController {
 //    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {

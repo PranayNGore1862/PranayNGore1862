@@ -35,6 +35,8 @@ class VideoPlayerViewController: UIViewController {
         label.text = videolabel
         totalTimeLabel.text = totallabel
         imageView.image = thumbnailImages
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -101,7 +103,7 @@ class VideoPlayerViewController: UIViewController {
 
         playerLayer = AVPlayerLayer(player: player)
         playerLayer?.frame = uiView.bounds
-        playerLayer?.videoGravity = .resizeAspectFill
+        playerLayer?.videoGravity = .resizeAspect
 
         if let layer = playerLayer {
             uiView.layer.addSublayer(layer)
@@ -143,7 +145,7 @@ class VideoPlayerViewController: UIViewController {
     
     func startProgressTimer() {
         progressTimer?.invalidate()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             guard let player = self.player else { return }
             let currentTime = CMTimeGetSeconds(player.currentTime())
             if currentTime.isFinite && !currentTime.isNaN {

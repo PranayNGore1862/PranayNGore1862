@@ -137,6 +137,7 @@ class AudioViewController: UIViewController, FullScreenContentDelegate {
 //            gifImage.loadGif(name: "playing")
 //            loaderView.isHidden = false
 //        }
+        UserDefaults.standard.set(1, forKey: "launchCount")
     }
 
     

@@ -47,6 +47,8 @@ class Video2ViewController: UIViewController {
         thumbnailImage.image = videoThumbnail
         setupPlayer(for: fileUrl, type: "noiseless")
         updateButtons()
+        thumbnailImage.contentMode = .scaleAspectFit
+        thumbnailImage.clipsToBounds = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -127,7 +129,7 @@ class Video2ViewController: UIViewController {
         
         playerLayer = AVPlayerLayer(player: player)
         playerLayer?.frame = videoView.bounds
-        playerLayer?.videoGravity = .resizeAspectFill
+        playerLayer?.videoGravity = .resizeAspect
         if let layer = playerLayer {
             videoView.layer.addSublayer(layer)
         }
@@ -169,7 +171,7 @@ class Video2ViewController: UIViewController {
     // MARK: - Timer & Finish
     func startProgressTimer() {
         progressTimer?.invalidate()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             guard let player = self.currentPlayer else { return }
             let currentTime = CMTimeGetSeconds(player.currentTime())
             self.videoSlider.value = Float(currentTime)

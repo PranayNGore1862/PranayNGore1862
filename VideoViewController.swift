@@ -46,6 +46,8 @@ class VideoViewController: UIViewController {
         thumbnailImage.image = thumbnails
         sliderVideo.value = 0
         timeStart.text = formatTime(0)
+        thumbnailImage.contentMode = .scaleAspectFit
+        thumbnailImage.clipsToBounds = true
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -103,6 +105,7 @@ class VideoViewController: UIViewController {
     }
     
     @IBAction func removeVideoNoiseButton(_ sender: UIButton) {
+        UserDefaults.standard.set(1, forKey: "launchCount")
         gifImage.loadGif(name: "playing")
         loaderView.backgroundColor = .black
         loaderView.isHidden = false
@@ -110,6 +113,7 @@ class VideoViewController: UIViewController {
         player?.pause()
         sliderVideo.value = 0
     }
+
 
     func setupVideoPlayer() {
         guard let url = videoUrl else {
@@ -122,12 +126,12 @@ class VideoViewController: UIViewController {
 
         playerLayer = AVPlayerLayer(player: player)
         playerLayer?.frame = uiView.bounds
-        playerLayer?.videoGravity = .resizeAspectFill
+        playerLayer?.videoGravity = .resizeAspect
 
         if let layer = playerLayer {
             uiView.layer.addSublayer(layer)
         }
-
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(videoDidFinishPlaying),
@@ -181,7 +185,7 @@ class VideoViewController: UIViewController {
     
     func startProgressTimer() {
         progressTimer?.invalidate()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { _ in
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
             guard let player = self.player else { return }
             let currentTime = CMTimeGetSeconds(player.currentTime())
             if currentTime.isFinite && !currentTime.isNaN {

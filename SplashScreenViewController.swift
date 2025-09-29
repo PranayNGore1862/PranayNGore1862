@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RevenueCat
+import Purchases
 
 class SplashScreenViewController: UIViewController {
     override func viewDidLoad() {
@@ -34,4 +36,25 @@ class SplashScreenViewController: UIViewController {
             self.navigationController?.pushViewController(questionVC, animated: true)
         }
     }
+    
+//    revenuecat
+//    func startAppforReal(){
+//        Purchases.shared.getOfferings { (offerings , error) in
+//            if let error = error {
+//                self.catchError(error)
+//            }else{
+//                Purchases.shared.getCustomerInfo { (customerInfo, error) in
+//                    if let error = error {
+//                        self.catchError(error)
+//                    }else{
+//                        self.navigateToNextScreen()
+//                    }
+//                }
+//            }
+//        }
+//    }
+//    
+//    func catchError(_ error: Error){
+//        print("Error: \(error)")
+//    }
 }

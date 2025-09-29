@@ -157,6 +157,7 @@ class AudioRecordingViewController: UIViewController, AVAudioRecorderDelegate {
         
         let cancel = UIAlertAction(title: "Cancel", style: .cancel)
         let Ok = UIAlertAction(title: "Ok", style: .default) { _ in
+            UserDefaults.standard.set(1, forKey: "launchCount")
             let audioVC = self.storyboard?.instantiateViewController(withIdentifier: "AudioViewController") as! AudioViewController
             audioVC.mainUrl = URL
             audioVC.audioName1 = "Recording"
